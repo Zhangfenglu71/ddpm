@@ -49,7 +49,12 @@ def train(modelConfig: Dict):
             for images, labels in tqdmDataLoader:
                 # train
                 optimizer.zero_grad()
-                x_0 = images.to(device)
+                # ``RandomHorizontalFlip`` from torchvision may return tensors with
+                # negative strides, which can later trigger ``view``-related
+                # errors inside PyTorch's autograd when backpropagating.  Making
+                # the tensor contiguous here ensures a standard memory layout
+                # before it is used in the diffusion model.
+                x_0 = images.to(device).contiguous()
                 loss = trainer(x_0).sum() / 1000.
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(
