@@ -1,5 +1,5 @@
 from DiffusionFreeGuidence.TrainCondition import train, eval
-
+import torch
 
 def main(model_config=None):
     modelConfig = {
@@ -29,6 +29,20 @@ def main(model_config=None):
     }
     if model_config is not None:
         modelConfig = model_config
+
+    # 动态选择设备：优先使用 CUDA，其次是 Apple MPS，最后回退到 CPU
+    if torch.cuda.is_available():
+        modelConfig["device"] = "cuda:0"
+    elif torch.backends.mps.is_available():
+        modelConfig["device"] = "mps"
+    else:
+        modelConfig["device"] = "cpu"
+
+    print(f"Using device: {modelConfig['device']}")
+
+    # 强制使用 float32，确保在 MPS 上运行
+    modelConfig["dtype"] = torch.float32
+
     if modelConfig["state"] == "train":
         train(modelConfig)
     else:
