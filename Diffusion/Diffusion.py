@@ -13,7 +13,7 @@ def extract(v, t, x_shape):
     """
     device = t.device
     out = torch.gather(v, index=t, dim=0).float().to(device)
-    return out.view([t.shape[0]] + [1] * (len(x_shape) - 1))
+    return out.reshape([t.shape[0]] + [1] * (len(x_shape) - 1))
 
 
 class GaussianDiffusionTrainer(nn.Module):
@@ -23,8 +23,9 @@ class GaussianDiffusionTrainer(nn.Module):
         self.model = model
         self.T = T
 
+        dtype = torch.float32 if torch.backends.mps.is_available() else torch.float64
         self.register_buffer(
-            'betas', torch.linspace(beta_1, beta_T, T).double())
+            'betas', torch.linspace(beta_1, beta_T, T, dtype=dtype))
         alphas = 1. - self.betas
         alphas_bar = torch.cumprod(alphas, dim=0)
 
@@ -54,7 +55,8 @@ class GaussianDiffusionSampler(nn.Module):
         self.model = model
         self.T = T
 
-        self.register_buffer('betas', torch.linspace(beta_1, beta_T, T).double())
+        dtype = torch.float32 if torch.backends.mps.is_available() else torch.float64
+        self.register_buffer('betas', torch.linspace(beta_1, beta_T, T, dtype=dtype))
         alphas = 1. - self.betas
         alphas_bar = torch.cumprod(alphas, dim=0)
         alphas_bar_prev = F.pad(alphas_bar, [1, 0], value=1)[:T]
