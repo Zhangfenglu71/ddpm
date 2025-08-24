@@ -56,7 +56,7 @@ def train(modelConfig: Dict):
                 # used in other settings. Calling ``contiguous`` here ensures a standard
                 # memory layout before further processing and avoids view-related errors
                 # in autograd for any such tensors.
-                x_0 = images.to(device).contiguous()
+                x_0 = images.contiguous().to(device)
                 labels = labels.to(device) + 1
                 if np.random.rand() < 0.1:
                     labels = torch.zeros_like(labels).to(device)
