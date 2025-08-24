@@ -54,7 +54,7 @@ def train(modelConfig: Dict):
                 # errors inside PyTorch's autograd when backpropagating.  Making
                 # the tensor contiguous here ensures a standard memory layout
                 # before it is used in the diffusion model.
-                x_0 = images.to(device).contiguous()
+                x_0 = images.contiguous().to(device)
                 loss = trainer(x_0).sum() / 1000.
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(
