@@ -51,10 +51,11 @@ def train(modelConfig: Dict):
                 optimizer.zero_grad()
                 # ``RandomHorizontalFlip`` from torchvision may return tensors with
                 # negative strides, which can later trigger ``view``-related
-                # errors inside PyTorch's autograd when backpropagating.  Making
-                # the tensor contiguous here ensures a standard memory layout
-                # before it is used in the diffusion model.
-                x_0 = images.contiguous().to(device)
+                # errors inside PyTorch's autograd when backpropagating. Making
+                # the tensor contiguous *before* moving it to the training device
+                # ensures a standard memory layout for the diffusion model.
+                x_0 = images.contiguous()
+                x_0 = x_0.to(device)
                 loss = trainer(x_0).sum() / 1000.
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(
